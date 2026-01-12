@@ -263,7 +263,7 @@ int SRT_OdriveMtr::set_cont_mode(uint32_t cont_mode, uint32_t ip_mode) {
 int SRT_OdriveMtr::set_ip_pos(float ip_pos, int16_t vel, int16_t torque) {
     uint8_t data[8];
 
-    flt_cnv.flt = ip_pos;
+    flt_cnv.flt = ip_pos*_gear_ratio;
     data[7] = (torque >> 8) & 0xFF;
     data[6] =  torque       & 0xFF;
     data[5] = (vel    >> 8) & 0xFF;
@@ -284,13 +284,13 @@ int SRT_OdriveMtr::set_ip_pos(float ip_pos, int16_t vel, int16_t torque) {
 int SRT_OdriveMtr::set_ip_vel(float vel, float torque) {
     uint8_t data[8];
 
-    flt_cnv.flt = torque;
+    flt_cnv.flt = torque/_gear_ratio;
     data[7] = (flt_cnv.u32 >> 24) & 0xFF;
     data[6] = (flt_cnv.u32 >> 16) & 0xFF;
     data[5] = (flt_cnv.u32 >> 8)  & 0xFF;
     data[4] =  flt_cnv.u32        & 0xFF;
 
-    flt_cnv.flt = vel;
+    flt_cnv.flt = vel*_gear_ratio;
     data[3] = (flt_cnv.u32 >> 24) & 0xFF;
     data[2] = (flt_cnv.u32 >> 16) & 0xFF;
     data[1] = (flt_cnv.u32 >> 8)  & 0xFF;
@@ -307,7 +307,7 @@ int SRT_OdriveMtr::set_ip_vel(float vel, float torque) {
 int SRT_OdriveMtr::set_ip_torq(float torque) {
     uint8_t data[4];
 
-    flt_cnv.flt = torque;
+    flt_cnv.flt = torque/_gear_ratio;
     data[3] = (flt_cnv.u32 >> 24) & 0xFF;
     data[2] = (flt_cnv.u32 >> 16) & 0xFF;
     data[1] = (flt_cnv.u32 >> 8)  & 0xFF;
@@ -330,7 +330,7 @@ int SRT_OdriveMtr::set_lim(float vel_lim, float cur_lim) {
     data[5] = (flt_cnv.u32 >> 8)  & 0xFF;
     data[4] =  flt_cnv.u32        & 0xFF;
 
-    flt_cnv.flt = vel_lim;
+    flt_cnv.flt = vel_lim*_gear_ratio;
     data[3] = (flt_cnv.u32 >> 24) & 0xFF;
     data[2] = (flt_cnv.u32 >> 16) & 0xFF;
     data[1] = (flt_cnv.u32 >> 8)  & 0xFF;
@@ -347,7 +347,7 @@ int SRT_OdriveMtr::set_lim(float vel_lim, float cur_lim) {
 int SRT_OdriveMtr::set_traj_vel_limit(float vel_lim) {
     uint8_t data[4];
 
-    flt_cnv.flt = vel_lim;
+    flt_cnv.flt = vel_lim*_gear_ratio;
     data[3] = (flt_cnv.u32 >> 24) & 0xFF;
     data[2] = (flt_cnv.u32 >> 16) & 0xFF;
     data[1] = (flt_cnv.u32 >> 8)  & 0xFF;
@@ -364,13 +364,13 @@ int SRT_OdriveMtr::set_traj_vel_limit(float vel_lim) {
 int SRT_OdriveMtr::set_traj_accel_limits(float accel_limit, float decel_limit) {
     uint8_t data[8];
 
-    flt_cnv.flt = decel_limit;
+    flt_cnv.flt = decel_limit*_gear_ratio;
     data[7] = (flt_cnv.u32 >> 24) & 0xFF;
     data[6] = (flt_cnv.u32 >> 16) & 0xFF;
     data[5] = (flt_cnv.u32 >> 8)  & 0xFF;
     data[4] =  flt_cnv.u32        & 0xFF;
 
-    flt_cnv.flt = accel_limit;
+    flt_cnv.flt = accel_limit*_gear_ratio;
     data[3] = (flt_cnv.u32 >> 24) & 0xFF;
     data[2] = (flt_cnv.u32 >> 16) & 0xFF;
     data[1] = (flt_cnv.u32 >> 8)  & 0xFF;
@@ -430,7 +430,7 @@ int SRT_OdriveMtr::clear_errors() {
 int SRT_OdriveMtr::set_absolute_position(float pos) {
     uint8_t data[4];
 
-    flt_cnv.flt = pos;
+    flt_cnv.flt = pos*_gear_ratio;
     data[3] = (flt_cnv.u32 >> 24) & 0xFF;
     data[2] = (flt_cnv.u32 >> 16) & 0xFF;
     data[1] = (flt_cnv.u32 >> 8)  & 0xFF;
