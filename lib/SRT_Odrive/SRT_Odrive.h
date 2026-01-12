@@ -143,6 +143,7 @@ struct mtr_values {
 class SRT_OdriveMtr {
 private:
     uint8_t  _node_id; // Be careful 0x3f is the broadcast ID!
+    uint8_t _gear_ratio;
     int (*can_send_msg)(uint16_t can_id, uint8_t len, uint8_t* data, bool rtr);
     uint32_t   _mtr_last_hb;
     float_conv flt_cnv;
@@ -152,7 +153,7 @@ private:
 
 public:
     SRT_OdriveMtr(int (*send_func)(uint16_t can_id, uint8_t len, uint8_t* data, bool rtr),
-                  uint8_t node_id);
+                  uint8_t node_id, uint8_t gear_ratio);
 
     void begin();
     int  process_cmd(cmd_id cmd, uint8_t len, uint8_t* data);

@@ -1,8 +1,9 @@
 #include "SRT_OpenCan.h"
 
-SRT_CanOpenMtr::SRT_CanOpenMtr(int (*sendfunc)(uint16_t, uint8_t, uint8_t*, bool), uint8_t nodeid) {
+SRT_CanOpenMtr::SRT_CanOpenMtr(int (*sendfunc)(uint16_t, uint8_t, uint8_t*, bool), uint8_t nodeid, uint8_t gearratio) {
     _node_id = nodeid;
     can_send_msg = sendfunc;  // Fixed: no dereference needed
+    _gear_ratio = gearratio;
 }
 
 int SRT_CanOpenMtr::process_msg(uint16_t can_id, uint8_t len, uint8_t* data) {
@@ -41,22 +42,22 @@ int SRT_CanOpenMtr::enable_motor() {
 int SRT_CanOpenMtr::move_relative(int32_t steps, uint32_t velocity, uint32_t accel_ms, uint32_t decel_ms) {
     stop(); //Ensure there is not a movement already happening. Temporary, there are better ways of doing this!
     send_sdo_write(0x6060, 0x00, 1, 1);  // Position mode
-    send_sdo_write(0x6081, 0x00, velocity, 4);// Profile velocity 1000
-    send_sdo_write(0x6083, 0x00, accel_ms, 4);
-    send_sdo_write(0x6084, 0x00, decel_ms, 4);
+    send_sdo_write(0x6081, 0x00, velocity*_gear_ratio, 4);// Profile velocity 1000
+    send_sdo_write(0x6083, 0x00, accel_ms*_gear_ratio, 4);
+    send_sdo_write(0x6084, 0x00, decel_ms*_gear_ratio, 4);
     enable_motor();  // Ensure enabled
-    send_sdo_write(0x607A, 0x00, (uint32_t)steps, 4);  // Target position
+    send_sdo_write(0x607A, 0x00, (uint32_t)steps*_gear_ratio, 4);  // Target position
     return send_sdo_write(0x6040, 0x00, 95, 2);  // Start relative move
 }
 
 int SRT_CanOpenMtr::move_absolute(int32_t steps,uint32_t velocity, uint32_t accel_ms, uint32_t decel_ms) {
     stop(); //Ensure there is not a movement already happening. Temporary, there are better ways of doing this!
     send_sdo_write(0x6060, 0x00, 1, 1);  // Position mode
-    send_sdo_write(0x6081, 0x00, velocity, 4);// Profile velocity 1000
-    send_sdo_write(0x6083, 0x00, accel_ms, 4);
-    send_sdo_write(0x6084, 0x00, decel_ms, 4);
+    send_sdo_write(0x6081, 0x00, velocity*_gear_ratio, 4);// Profile velocity 1000
+    send_sdo_write(0x6083, 0x00, accel_ms*_gear_ratio, 4);
+    send_sdo_write(0x6084, 0x00, decel_ms*_gear_ratio, 4);
     enable_motor();  // Ensure enabled
-    send_sdo_write(0x607A, 0x00, (uint32_t)steps, 4);  // Target position
+    send_sdo_write(0x607A, 0x00, (uint32_t)steps*_gear_ratio, 4);  // Target position
     return send_sdo_write(0x6040, 0x00, 31, 2);
 }
 

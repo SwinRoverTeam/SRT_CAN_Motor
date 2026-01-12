@@ -2,9 +2,11 @@
 
 SRT_OdriveMtr::SRT_OdriveMtr(
     int (*send_func)(uint16_t can_id, uint8_t len, uint8_t* data, bool rtr),
-    uint8_t node_id
+    uint8_t node_id,
+    uint8_t gear_ratio
 ) {
     _node_id     = node_id;
+    _gear_ratio = gear_ratio;
     can_send_msg = send_func;
     _timeout     = 5000;
 }
