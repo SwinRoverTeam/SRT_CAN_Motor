@@ -1,6 +1,6 @@
 # ODrive Arduino CAN Replacement
 
-This is a project to rewrite the CAN aspect of the ODrive Arduino library as I dislike the implementation.
+Each Season's libraries for CAN are here! Please clone the Libraries into your platform IO projects, adding these libraries into the MicroRos template is a good start for making combined nodes with ROS & CAN! This is the centralised location for the CAN motor libraries!
 
 The ODrive documentation has a .dbc file for the messages sent on the can bus, this is in the /assets folder. A DBC viewer such as <a href=https://www.csselectronics.com/pages/dbc-editor-can-bus-database>this</a> will make the file readable. That dbc file and more implementation details can be found [here](https://docs.odriverobotics.com/v/latest/manual/can-protocol.html).
 
