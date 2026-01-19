@@ -8,21 +8,20 @@
 #define CAN_RX_GPIO GPIO_NUM_18
 #define CAN_BAUDRATE_500K TWAI_TIMING_CONFIG_500KBITS()
 
-// Fixed profile parameters
-const uint32_t FIXED_VEL = 1000;   // 6081h BIGGER NUMBER = SLOWER SPEED
-const uint32_t FIXED_ACC = 1000;    // 6083h
-const uint32_t FIXED_DEC = 1000;    // 6084h 1 IS VERY FAST DO NOT GO BELOW 300 FOR ANY OF THESE!!!
 
 // -------- Node ID arrays --------
-// ODrive: 1+4n, between 1 and 29
+// Only set ODrive can IDs to the equation: 1+4n, between 1 and 29 (1,5,9,13 etc...)
 //set odrive motors to as many as needed and and there can_id addresses
 constexpr uint8_t ODRIVE_NODE_IDS[]   = {1, 5, 9, 13};
+//Gear Ratios for the corresponding motors. value is a x:1, ie 8 is a 8:1 ratio
+constexpr uint8_t ODRIVE_NODE_GEAR_RATIOS[]   = {1, 1, 1, 1};
 //do not touch this function this tests how many of each motor there m4 is of odrive
 constexpr size_t  NUM_ODRIVE_MOTORS   = sizeof(ODRIVE_NODE_IDS) / sizeof(ODRIVE_NODE_IDS[0]);
 
 // CANopen: 0..31, but 0 reserved for broadcast
-//set lichuan motors to as many as needed and and there can_id addresses
+//set lichuan motors to any can_id addresses that is not used by ODrive
 constexpr uint8_t OPENCAN_NODE_IDS[]  = {2, 3, 4, 6};
+constexpr uint8_t OPENCAN_NODE_GEAR_RATIOS[]   = {1, 1, 1, 1}; 
 //do not touch this function this tests how many of each motor there is of lichuan
 constexpr size_t  NUM_OPENCAN_MOTORS  = sizeof(OPENCAN_NODE_IDS) / sizeof(OPENCAN_NODE_IDS[0]);
 
@@ -65,17 +64,17 @@ bool init_twai(gpio_num_t tx, gpio_num_t rx) {
 
 // -------- Motor objects (arrays) --------
 SRT_OdriveMtr   odrives[NUM_ODRIVE_MOTORS] = {
-    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[0]), // First motor with can id 1
-    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[1]), // Second motor with can id 5
-    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[2]), // Third motor with can id 9
-    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[3]), // Fourth motor with can id 13
+    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[0],ODRIVE_NODE_GEAR_RATIOS[0]), // First motor with can id 1
+    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[1],ODRIVE_NODE_GEAR_RATIOS[1]), // Second motor with can id 5
+    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[2],ODRIVE_NODE_GEAR_RATIOS[2]), // Third motor with can id 9
+    SRT_OdriveMtr(&send_can_msg, ODRIVE_NODE_IDS[3],ODRIVE_NODE_GEAR_RATIOS[3]), // Fourth motor with can id 13
 };
 
 SRT_CanOpenMtr  opencans[NUM_OPENCAN_MOTORS] = {
-    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[0]),
-    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[1]),
-    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[2]),
-    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[3]),
+    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[0],OPENCAN_NODE_GEAR_RATIOS[0]),
+    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[1],OPENCAN_NODE_GEAR_RATIOS[1]),
+    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[2],OPENCAN_NODE_GEAR_RATIOS[2]),
+    SRT_CanOpenMtr(&send_can_msg, OPENCAN_NODE_IDS[3],OPENCAN_NODE_GEAR_RATIOS[3]),
 };
 void init_odrive_motors() {
     for (size_t i = 0; i < NUM_ODRIVE_MOTORS; ++i) {
