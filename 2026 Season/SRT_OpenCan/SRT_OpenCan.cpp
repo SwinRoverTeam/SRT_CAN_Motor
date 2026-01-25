@@ -146,5 +146,5 @@ bool SRT_CanOpenMtr::home_motor(){
     send_sdo_read(0x6040, 0x00, 2); // Reads the control word
     delay(10);
     send_sdo_write(0x6040,0x00,_statusword|1<<4,2); // Writes the control worth with the 4th bit to one. This starts homing
-
+    return true;
 }
