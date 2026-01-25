@@ -108,22 +108,43 @@ int SRT_CanOpenMtr::Estop() {
     return send_sdo_write(0x6040, 0x00, 11, 2); // Stops the motor as quickly as possible
 }
 
-
-
-
 bool SRT_CanOpenMtr::is_motor_running() {
     _statusword_valid = false;
     // Request Statusword (UNSIGNED16)
     send_sdo_read(0x6041, 0x00, 2);
 
-    // Simple wait; in your real code, you probably want non‑blocking / timeout
     uint32_t start = millis();
-    while (! _statusword_valid && (millis() - start) < 50) {
+    while (! _statusword_valid && (millis() - start) < 10) {
         // spin or call CAN polling
+        //This is a blocking delay !!!!
     }
 
     if (! _statusword_valid) return false; // timeout / unknown
 
     // Bit14 = motion status: 1 = running
     return (_statusword & (1 << 14)) != 0;
+}
+
+bool SRT_CanOpenMtr::home_motor(){
+    send_sdo_write(0x6040, 0x00, 6, 2);
+    delay(10);
+    send_sdo_write(0x6040, 0x00, 7, 2);
+    delay(10);
+    send_sdo_write(0x6040, 0x00, 15, 2);
+    delay(10);
+
+    // Homing Paramaters
+    //Gear ratios help determine the speed that the output is moving
+    send_sdo_write(0x6098, 0x00, 4*_gear_ratio, 2); //Homing speed
+    delay(10);
+    send_sdo_write(0x6099, 0x01, 4*_gear_ratio, 2); // Homing creep speed
+    delay(10);
+    send_sdo_write(0x6099, 0x02, 150*_gear_ratio, 2); // Homing Acceleration/Decceleration
+    delay(10);
+
+
+    send_sdo_read(0x6040, 0x00, 2); // Reads the control word
+    delay(10);
+    send_sdo_write(0x6040,0x00,_statusword|1<<4,2); // Writes the control worth with the 4th bit to one. This starts homing
+
 }
