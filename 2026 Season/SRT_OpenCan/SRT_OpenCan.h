@@ -23,7 +23,7 @@ public:
     int Estop();
 
     //=========== Homing attempts =========
-    int do_homing(); // run homing sequence, set current pos = 0
+    bool home_motor(); // run homing sequence, set current pos = 0
 };
 
 #endif
