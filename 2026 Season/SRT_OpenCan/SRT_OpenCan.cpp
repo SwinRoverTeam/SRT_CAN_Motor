@@ -3,6 +3,9 @@
 volatile uint16_t _statusword = 0;
 volatile bool _statusword_valid = false;
 
+volatile uint16_t _controlword = 0;
+volatile bool _controlword_valid = false;
+
 SRT_CanOpenMtr::SRT_CanOpenMtr(int (*sendfunc)(uint16_t, uint8_t, uint8_t*, bool), uint8_t nodeid, uint8_t gearratio) {
     _node_id = nodeid;
     can_send_msg = sendfunc;  // Fixed: no dereference needed
@@ -21,6 +24,11 @@ int SRT_CanOpenMtr::process_msg(uint16_t can_id, uint8_t len, uint8_t* data) {
             // For 16‑bit, two data bytes
             _statusword = uint16_t(data[4]) | (uint16_t(data[5]) << 8);
             _statusword_valid = true;
+        }
+        // SDO upload response for 0x6040:00 (Controlword)
+        if ((cs & 0xE0) == 0x40 && index == 0x6040 && sub == 0x00) {
+            _controlword = uint16_t(data[4]) | (uint16_t(data[5]) << 8);
+            _controlword_valid = true;
         }
     }
 
@@ -126,25 +134,34 @@ bool SRT_CanOpenMtr::is_motor_running() {
 }
 
 bool SRT_CanOpenMtr::home_motor(){
-    send_sdo_write(0x6040, 0x00, 6, 2);
+    
+    send_sdo_write(0x6060, 0x00, 6, 1);
     delay(10);
-    send_sdo_write(0x6040, 0x00, 7, 2);
+    enable_motor();
     delay(10);
-    send_sdo_write(0x6040, 0x00, 15, 2);
-    delay(10);
+    
 
     // Homing Paramaters
     //Gear ratios help determine the speed that the output is moving
-    send_sdo_write(0x6098, 0x00, 4*_gear_ratio, 2); //Homing speed
+    send_sdo_write(0x6098, 0x00, 29, 2); //Homing mode
     delay(10);
-    send_sdo_write(0x6099, 0x01, 4*_gear_ratio, 2); // Homing creep speed
+    send_sdo_write(0x6099, 0x01, 200, 2); // Homing speed
     delay(10);
-    send_sdo_write(0x6099, 0x02, 150*_gear_ratio, 2); // Homing Acceleration/Decceleration
+    send_sdo_write(0x6099, 0x02, 200, 2); // Homing creep speed
+    delay(10);
+    send_sdo_write(0x609A, 0x00, 500, 2); // Homing Acceleration/Decceleration
     delay(10);
 
+    // Optional: homing offset 607Ch
+    /*
+    int32_t home_offset = 0;
+    send_sdo_write(0x607C, 0x00, (uint32_t)home_offset, 4);
+    delay(10);
+    */
 
     send_sdo_read(0x6040, 0x00, 2); // Reads the control word
-    delay(10);
-    send_sdo_write(0x6040,0x00,_statusword|1<<4,2); // Writes the control worth with the 4th bit to one. This starts homing
+    delay(15);
+
+    send_sdo_write(0x6040,0x00,15|1<<4,2); // Writes the control word with the 4th bit to one. This starts homing
     return true;
 }
