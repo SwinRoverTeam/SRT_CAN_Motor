@@ -79,7 +79,7 @@ int SRT_CanOpenMtr::send_sdo_read(uint16_t index, uint8_t sub, uint8_t size) {
 
 
 int SRT_CanOpenMtr::enable_motor() {
-
+    if (_moter_disabled) return -1; // Motor is E-stopped, cannot enable until reset
     send_sdo_write(0x6040, 0x00, 6, 2);
     delay(10);
     send_sdo_write(0x6040, 0x00, 7, 2);
@@ -113,6 +113,7 @@ int SRT_CanOpenMtr::stop() {
     return send_sdo_write(0x6040, 0x00, 271, 2); // Stops the motor gently
 }
 int SRT_CanOpenMtr::Estop() {
+    _moter_disabled = true;
     return send_sdo_write(0x6040, 0x00, 11, 2); // Stops the motor as quickly as possible
 }
 
@@ -133,35 +134,50 @@ bool SRT_CanOpenMtr::is_motor_running() {
     return (_statusword & (1 << 14)) != 0;
 }
 
-bool SRT_CanOpenMtr::home_motor(){
-    
+bool SRT_CanOpenMtr::home_motor(int home_offset) {
+
     send_sdo_write(0x6060, 0x00, 6, 1);
     delay(10);
     enable_motor();
     delay(10);
-    
 
     // Homing Paramaters
     //Gear ratios help determine the speed that the output is moving
+    send_sdo_write(0x6099, 0x01, 100, 2); // Homing speed
+    delay(10);
+    send_sdo_write(0x6099, 0x02, 100, 2); // Homing creep speed
+    delay(10);
+    send_sdo_write(0x609A, 0x00, 5000, 2); // Homing Acceleration/Decceleration
+    delay(10);
     send_sdo_write(0x6098, 0x00, 29, 2); //Homing mode
     delay(10);
-    send_sdo_write(0x6099, 0x01, 200, 2); // Homing speed
+    
+    int32_t offset = home_offset*_gear_ratio;
+    send_sdo_write(0x607C, 0x00, (int32_t)offset, 4);
     delay(10);
-    send_sdo_write(0x6099, 0x02, 200, 2); // Homing creep speed
-    delay(10);
-    send_sdo_write(0x609A, 0x00, 500, 2); // Homing Acceleration/Decceleration
-    delay(10);
-
-    // Optional: homing offset 607Ch
-    /*
-    int32_t home_offset = 0;
-    send_sdo_write(0x607C, 0x00, (uint32_t)home_offset, 4);
-    delay(10);
-    */
 
     send_sdo_read(0x6040, 0x00, 2); // Reads the control word
     delay(15);
 
     send_sdo_write(0x6040,0x00,15|1<<4,2); // Writes the control word with the 4th bit to one. This starts homing
     return true;
+}
+
+bool SRT_CanOpenMtr::set_motor_pos_zero(){
+    send_sdo_write(0x2302, 0x00, 1, 2);   // Trigger clear (UINT16)
+    delay(30);
+    send_sdo_write(0x2302, 0x00, 0, 2);   // Deactivate trigger
+    delay(30);
+
+    // Optional: Save parameters
+    send_sdo_write(0x2300, 0x00, 2, 2);
+    delay(10);
+    return true;
+}
+int SRT_CanOpenMtr::reset_alarm() {
+    // Set Bit7=1 (0x80) to trigger rising edge reset
+    send_sdo_write(0x6040, 0x00, 0x0080, 2);  
+    
+    // Immediately set Bit7=0 (manual clear required by spec)
+    return send_sdo_write(0x6040, 0x00, 0x0000, 2); 
 }
