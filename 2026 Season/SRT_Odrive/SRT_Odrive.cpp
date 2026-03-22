@@ -204,12 +204,8 @@ int SRT_OdriveMtr::req_info_cmd(cmd_id cmd) {
     Set motor values
 */
 int SRT_OdriveMtr::stop() {
-    return can_send_msg(
-        (_node_id << 5) + ((uint8_t)cmd_id::estop),
-        0,
-        0,
-        false
-    );
+    can_send_msg((_node_id << 5) + ((uint8_t)cmd_id::estop),0,0,false); //This simply stops the motor, but doesn't change the axis state. THis means the motor can still be sent position/velocity/torque commands and move.
+    return set_axis_state((uint32_t)axis_states::idle); //Seting the axis state to idle will stop the motor and ignore any position/velocity/torque commands until the axis state is changed again.
 }
 
 bool SRT_OdriveMtr::config_motor() {
