@@ -3,9 +3,9 @@
 #include "SRT_PiccoloCAN.h"
 
 // ---- Config ----
-#define CAN_TX_PIN   GPIO_NUM_4     // to transceiver TXD (e.g. SN65HVD230 / TJA1051)
-#define CAN_RX_PIN   GPIO_NUM_5     // to transceiver RXD
-#define SERVO_ID     1              // servo CAN node ID (1..254; 0 = disabled)
+#define CAN_TX_PIN   GPIO_NUM_18     // to transceiver TXD (e.g. SN65HVD230 / TJA1051)
+#define CAN_RX_PIN   GPIO_NUM_16     // to transceiver RXD
+#define SERVO_ID     14              // servo CAN node ID (1..254; 0 = disabled)
 
 // ---- TWAI send wrapper (extended frames) ----
 int can_send_ext(uint32_t id, uint8_t len, uint8_t *data) {
